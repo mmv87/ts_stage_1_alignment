@@ -23,7 +23,6 @@ import matplotlib
 device ='cuda' if torch.cuda.is_available() else 'cpu'
 ##print(device)
 ###print("Is CUDA available? ", torch.cuda.is_available())
-
 model_name="/home/mmk/projects/def-zonata/mmk/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/7a8c4e2e81eae20a606d811f475d7dc316dd916a"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_HUB_OFFLINE"] = "1"

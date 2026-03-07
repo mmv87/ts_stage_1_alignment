@@ -24,7 +24,7 @@ class Fp32GroupNorm(nn.GroupNorm):
         
         return output.type_as(input)
 
-class ConvFeatureExtractionModel(nn.Module):
+class ConvFeatureExtraction(nn.Module):
     def __init__(self,conv_layers: List[Tuple[int, int, int]],dropout: float = 0.0,conv_bias: bool = False):
         super().__init__()
         ##assert mode in {"default", "layer_norm"}
@@ -102,7 +102,7 @@ actual_ch=4
 ts_token_mask=((torch.arange(max_N).unsqueeze(0))<actual_N).bool().to(torch.device(device))
 ch_mask=((torch.arange(max_ch).unsqueeze(0))<actual_ch).bool().to(torch.device(device))
 conv_layers = [(128,5,1),(64,3,1)]
-conv_extractor=ConvFeatureExtractionModel(conv_layers,dropout=0.1)
+conv_extractor=ConvFeatureExtraction(conv_layers,dropout=0.1)
 convolved_x=conv_extractor(test_x)
 print(f'convolved_x_shape:{convolved_x.shape}')
 
