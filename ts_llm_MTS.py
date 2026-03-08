@@ -97,9 +97,8 @@ class LLM_wrapper(nn.Module):
 
     def forward(self,input_ids=None,ts_input=None,ts_pairs=None,ts_idx=None,text_idx=None,attention_mask=None,labels=None,):
         ##convert the ts_patches into ts_embeddings
-        ts_tensor = ts_input.view(-1,self.max_patches,self.max_channel,self.P).to(self.device)  ## (bs,N,c_in,P)
+        ts_tensor = ts_input.to(self.device)  ## (bs,c_in,N,P)
         ts_embedding = self.ts_encoder(ts_tensor.to(self.device)) ## (bs,n_vars,num_patch,d_model)
-        
         ##slicing
         ##ts_embedding_sliced =ts_embedding[ts_masks] ##flattened ts_embeddings
         input_embeddings= self.assemble_input_embeds(input_ids,ts_embedding,ts_idx,text_idx,ts_pairs)
@@ -122,7 +121,6 @@ def check_ts_gradients(ts_encoder):
         if not param.requires_grad:
             print(f"{name}: Frozen (requires_grad=False)")
             continue
-            
         if param.grad is None:
             print(f"{name}: Grad is None (Graph Broken!)")
         else:
