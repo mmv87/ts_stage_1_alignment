@@ -273,7 +273,7 @@ class ts_textual(Dataset):
 
 
 ###collate function
-def collate_func(batch,tokenizer=None,device=device):
+def collate_func(batch,tokenizer=None):
     input_ids = [x['input_ids'] for x in batch]
     labels_batch=[x['labels'] for x in batch]
     attention_mask_batch=[x['attention_mask'] for x in batch]

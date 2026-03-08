@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-##from  TS_encoder import PatchTSTEncoder
+##from TS_encoder import PatchTSTEncoder
 from  transformers import AutoModelForCausalLM,AutoTokenizer
 from ts_dataloader import ts_textual,collate_func
 import os
