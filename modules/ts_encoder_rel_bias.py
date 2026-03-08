@@ -3,13 +3,12 @@ import torch.nn as nn
 from torch import Tensor
 import torch.nn.functional as F
 from torchsummary import summary
-
 import torch.nn as nn
 from typing import List, Tuple,Callable,Optional
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from conv_module import ConvFeatureExtractionModel
+##from conv_module import ConvFeatureExtractionModel
 import math
 ##from torchsummary import summary
 
@@ -325,7 +324,7 @@ class PatchTSTEncoder(nn.Module):
 
         return z  ##(bs,n_vars,num_patch,d_model)
     
-##unit testing
+"""##unit testing
 test_x=torch.randn(1,2,2,256) ##[b,ch,N,patch_len]
 max_ch=test_x.shape[1]
 max_N=test_x.shape[2]
@@ -335,7 +334,7 @@ actual_ch=1
 
 trans_ts_encoder=PatchTSTEncoder(patch_len=patch_len,n_layers=2,d_model=512,n_heads=8,
                              shared_embedding=True,d_ff=1024,norm='Layer',attn_dropout=0.,dropout=0.1,activation='gelu',store_attn=False,res_attention=False,pre_norm=True,pe='zeros',learn_pe=True,verbose=False)
-trans_ts_encoder.to(device)
+trans_ts_encoder.to(device)"""
 ##ts_embedding =trans_ts_encoder(test_x)
 ##summary(trans_ts_encoder, input_size=test_x.shape)
 

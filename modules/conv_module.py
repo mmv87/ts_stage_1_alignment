@@ -91,7 +91,7 @@ total_params = sum(p.numel() for p in ts_conv_enc.parameters())
 print(f"Total number of parameters: {(total_params):.2f}")
 """
 ##Unit testig the conv_module
-test_x=torch.randn(1,6,2,256)
+"""test_x=torch.randn(1,6,2,256)
 ##print(test_x.shape)
 max_ch=test_x.shape[1]
 max_N=test_x.shape[2]
@@ -110,6 +110,6 @@ print(convolved_x[:,0,:,:5])
 print(convolved_x.shape)
 
 total_params = sum(p.numel() for p in conv_extractor.parameters())
-print(f"Total number of parameters: {(total_params):.2f}")
+print(f"Total number of parameters: {(total_params):.2f}")"""
 
 

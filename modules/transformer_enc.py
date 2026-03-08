@@ -318,7 +318,7 @@ class PatchTSTEncoder(nn.Module):
         z=torch.reshape(z,(-1,max_ch,max_N,self.d_model)) ## reshaped to (bs,n_vars,num_patch,d_model)
 
         return z  ##(bs,n_vars,num_patch,d_model)
-       
+"""     
 ##unit testing
 test_x=torch.randn(1,5,10,512)
 ##print(test_x.shape)
@@ -332,12 +332,12 @@ ts_token_mask=((torch.arange(max_N).unsqueeze(0))<actual_N).bool().to(torch.devi
 ch_mask=((torch.arange(max_ch).unsqueeze(0))<actual_ch).bool().to(torch.device(device))
 print(f'ts_token_mask:{ts_token_mask}')
 print(f'ch_mask:{ch_mask}')
-
+"""
 
 ##total_mask=ts_token_mask.unsqueeze(1).expand(1,actual_ch,actual_N).contiguous().view(1,-1)  ## (bs,total_tokens)
 
 ##to get the global attention mask
-patch_copied =(ts_token_mask.long().expand(max_ch,ts_token_mask.shape[1]))
+##patch_copied =(ts_token_mask.long().expand(max_ch,ts_token_mask.shape[1]))
 ##patch_channel_adjusted = patch_copied[ch_mask]
 ##atten_mask_global =patch_copied.masked_fill(~(ch_mask.T.bool()),0)
 ##assert atten_mask_global.flatten().shape[0] == (max_ch*max_N)
@@ -362,7 +362,7 @@ print(concat_layer.shape)"""
 
 ##purpose to fuse and project the convolutional and ts_transformer into llm backbone
 ## wrapper to get the transformer and conv_module
-class llm_projection(nn.Module):
+"""class llm_projection(nn.Module):
     def __init__(self,conv_module,conv_features,trans_module,trans_embedding,d_fusion,d_llm):
         super().__init__()
         self.conv_module=conv_module
@@ -389,7 +389,7 @@ class llm_projection(nn.Module):
         z_gated=g*z_conv+(1.0-g)*z_trans
         z_llm = self.llm_projection(z_gated)
         
-        return z_llm
+        return z_llm"""
 
 """
 ts_encoder = llm_projection(conv_ts_encoder,512,trans_ts_encoder,768,1536,3072)

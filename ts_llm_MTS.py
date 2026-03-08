@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from  TS_encoder import PatchTSTEncoder
+##from  TS_encoder import PatchTSTEncoder
 from  transformers import AutoModelForCausalLM,AutoTokenizer
 from ts_dataloader import ts_textual,collate_func
 import os
@@ -9,7 +9,7 @@ import sys
 import numpy as np
 from torch.utils.data import Dataset,DataLoader
 from modules.conv_module import ConvFeatureExtraction
-from modules.transformer_enc import PatchTSTEncoder
+from modules.ts_encoder_rel_bias import PatchTSTEncoder
 from modules.ts_encoder import llm_projection
 
 device ='cuda' if torch.cuda.is_available() else 'cpu'

@@ -1,9 +1,9 @@
 
 ###Main ts_encoder that fuses the conv_module and transformer 
 ###Concatenate the features from conv_module and ts_transformer module and project to the llm_backbone 
-from conv_module import ConvFeatureExtractionModel
+##from conv_module import ConvFeatureExtractionModel
 ##from ts_encoder_rel_bias import PatchTSTEncoder
-from ts_encoder_rel_bias import PatchTSTEncoder
+##rom ts_encoder_rel_bias import PatchTSTEncoder
 import torch.nn as nn  
 import torch
 
@@ -37,7 +37,7 @@ class llm_projection(nn.Module):
         
         return z_llm
 
-
+"""
 ts_text=torch.randn(1,3,2,256)
 conv_layers = [(128,5,1),(64,3,1)]
 patch_len=256
@@ -48,6 +48,6 @@ ts_conv_module=ConvFeatureExtractionModel(conv_layers,dropout=0.1)
 ts_encoder = llm_projection(ts_conv_module,64,ts_transformer,512,1024,3072)
 
 ts_embeddings=ts_encoder(ts_text)
-print(ts_embeddings.shape)
+print(ts_embeddings.shape)"""
 
 
