@@ -3,12 +3,14 @@
 ## dataloader to set the pipeline
 ### for the subset of the dataset
 import os
-os.environ['HF_HOME']='D:/hf_cache'
+###os.environ['HF_HOME']='D:/hf_cache'
 
 from torch.utils.data import Dataset,DataLoader
 import torch
 import json
 from transformers import AutoModelForCausalLM,AutoTokenizer
+device ='cuda' if torch.cuda.is_available() else 'cpu'
+
 """
 abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
 ##print('path_read')
