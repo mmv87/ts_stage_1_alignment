@@ -74,9 +74,6 @@ class LLM_wrapper(nn.Module):
         T_new=ts_token_idx.shape[1]+text_token_idx.shape[1]
         ts_container =torch.zeros((T_new,text_emb_dim),device=self.device) ### total_idx,total_idx
         text_container=torch.zeros((T_new,text_emb_dim),device=self.device)
-        ##print(dest_container)
-        ##index = torch.tensor()
-        ###src_patch=torch.randn(50).contiguous() ## ts_embedding 
         flat_ts_embeddings=ts_embeddings.view(-1,c_in*num_ts_tokens,ts_emb_dim)
         flat_ts_embeddings=flat_ts_embeddings.squeeze(0)
         flat_text_embeddings=input_embeds.squeeze(0)
@@ -142,7 +139,7 @@ for epoch in range(1):  ##1 epochs
         textual_indices=batch['textual_indices'].to(device)
         ###ts_mask = batch['ts_mask'].to(device)
 
-      ##model_wrapper=LLM_wrapper(tokenizer,ts_input,model,device=device)
+        ##model_wrapper=LLM_wrapper(tokenizer,ts_input,model,device=device)
         outputs,_= model_wrapper(input_ids=input_ids,ts_input=ts_input,ts_pairs=ts_pairs,ts_idx=ts_indices,text_idx=textual_indices,attention_mask=attention_mask,labels=labels_batch,)
         loss=outputs.loss
         loss.backward()                     ##gradient calculation

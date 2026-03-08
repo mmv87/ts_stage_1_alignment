@@ -271,11 +271,7 @@ class ts_textual(Dataset):
              "ts_pairs":torch.tensor(ts_pairs),
             }
 
-##print(dataset_for_test[1000]['input_ids'])
-"""print(dataset_for_test[1040]['ts_input'].shape)
-print(dataset_for_test[1040]['labels'].shape)
-print(dataset_for_test[1040]['input_ids'].shape)
-##print(dataset_for_test[2765]['text_indices'])"""
+
 ###collate function
 def collate_func(batch,tokenizer=None,device=device):
     input_ids = [x['input_ids'] for x in batch]
