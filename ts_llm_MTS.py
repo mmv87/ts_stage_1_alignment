@@ -114,6 +114,27 @@ conv_layers=[(128,5,1),(64,3,1)]
 model_wrapper=LLM_wrapper(tokenizer,conv_layers,128,model,device=device)
 model_wrapper.train()
 model_wrapper.to(device)
+####check the gradient
+def check_ts_gradients(ts_encoder):
+    print("\n--- Gradient Flow Check: TS Encoder ---")
+    any_grad = False
+    for name, param in ts_encoder.named_parameters():
+        if not param.requires_grad:
+            print(f"{name}: Frozen (requires_grad=False)")
+            continue
+            
+        if param.grad is None:
+            print(f"{name}: Grad is None (Graph Broken!)")
+        else:
+            grad_norm = param.grad.norm().item()
+            print(f"{name}: Grad Norm = {grad_norm:.5f}")
+            if grad_norm > 1e-9:
+                any_grad = True
+                
+    if not any_grad:
+        print("WARNING: No trainable parameters in TS Encoder received gradients.")
+    else:
+        print("Success: Gradients are flowing to TS Encoder.")
 
 ##** freeze the LLM for stage-1 training
 for p in model_wrapper.llm_model.parameters():
@@ -150,6 +171,7 @@ for epoch in range(1):  ##1 epochs
         num_batches+=1
         optimizer.step()
         ###gradient checking
+        check_ts_gradients(model_wrapper.ts_encoder)
         optimizer.zero_grad()
         pbar.set_postfix(loss=loss.item())
         epoch_loss=running_loss/num_batches
