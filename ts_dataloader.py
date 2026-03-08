@@ -228,7 +228,7 @@ class ts_textual(Dataset):
         is_ts_new[ts_indices]=True
         new_text_indices = torch.nonzero(~is_ts_new).squeeze()
         
-        return ts_indices,new_text_indices
+        return ts_indices,new_text_indices,T_new
         
     def __getitem__(self,idx):
         ##self.byte_offset[idx]
@@ -245,22 +245,22 @@ class ts_textual(Dataset):
         output_ids=self.tokenizer(output,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
         ##print(f'test_output_ids:{output_ids}')
         combined_ids=torch.cat([input_ids,output_ids],dim=0)
-        total_ids=combined_ids.shape[1]+(timeseries.shape[0]*timeseries.shape[1])
+        
         ###print(f'total_textual:{combined_ids.shape}')
         ts_patched = self.pad_and_patchify(timeseries,self.patch_len,self.stride)
         ch=ts_patched.shape[0]
         N=ts_patched.shape[1]
         ts_pairs,total_text_tokens=self.ts_pair_indices(combined_ids)
         assert len(ts_pairs)==ch
-        ts_tokens,text_tokens=self._calculate_ts_indices(ts_pairs,ch,N,total_text_tokens)
+        ts_tokens,text_tokens,total_tokens=self._calculate_ts_indices(ts_pairs,ch,N,total_text_tokens)
         
         ##labels
         output_len=output_ids.shape[0]
-        labels = torch.fill(total_ids,-100,dtype=torch.long,device=self.device)
+        labels = torch.fill(total_tokens,-100,dtype=torch.long,device=self.device)
         labels[-output_len:] = output_ids.clone()
         ###assert labels.shape==combined_ids.shape
         ##attention_mask
-        attention_mask=torch.ones(total_ids,dtype=torch.long,device=self.device)
+        attention_mask=torch.ones(total_tokens,dtype=torch.long,device=self.device)
         ##attention_mask_batch.append(attention_mask)
         ##ts_pair_indices   
              
