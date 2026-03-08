@@ -67,7 +67,7 @@ class LLM_wrapper(nn.Module):
         num_ts_tokens=ts_embeddings.shape[2]
         
         ts_embeddings=ts_embeddings.view(bs*c_in,num_ts_tokens,-1)
-        ts_emb_dim=ts_embeddings.shape[3]
+        ts_emb_dim=ts_embeddings.shape[2]
         
         input_embeds=self.llm_model.get_input_embeddings()(input_ids) ##[bs,seq_len,d_emb]
         input_embeds.requires_grad_(requires_grad=True)
