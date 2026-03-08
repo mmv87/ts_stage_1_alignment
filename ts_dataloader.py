@@ -11,8 +11,8 @@ import json
 from transformers import AutoModelForCausalLM,AutoTokenizer
 device ='cuda' if torch.cuda.is_available() else 'cpu'
 
-"""
-abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
+
+"""abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
 ##print('path_read')
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_HUB_OFFLINE"] = "1"
@@ -256,7 +256,7 @@ class ts_textual(Dataset):
         
         ##labels
         output_len=output_ids.shape[0]
-        labels = torch.fill(total_tokens,-100,dtype=torch.long,device=self.device)
+        labels = torch.full((total_tokens,),-100,dtype=torch.long,device=self.device)
         labels[-output_len:] = output_ids.clone()
         ###assert labels.shape==combined_ids.shape
         ##attention_mask
@@ -298,14 +298,15 @@ def collate_func(batch,tokenizer=None):
 ###dataset=ts_textual(128,128,_json_path,tokenizer_modified,device=device,model_dtype=None)
 ##dataloader
 """dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
-dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer,device=device))
+dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
 
 for batch in dataloader:
   print(batch['input_ids'].shape)
   print(batch['attention_mask'].shape)
-  print(batch['labels'].shape)
-  print(batch['time_series'].shape)
+  print(batch['labels'].shape)"""
+  """print(batch['time_series'].shape)
   print(batch['ts_indices'].shape)
   print(batch['textual_indices'].shape)
-  print(batch['ts_pairs'].shape)
-  break"""
+  print(batch['ts_pairs'].shape)"""
+  
+  break
