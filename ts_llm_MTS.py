@@ -54,6 +54,7 @@ class LLM_wrapper(nn.Module):
         self.ts_conv_module=ConvFeatureExtraction(self.conv_layers,dropout=0.1)
         self.ts_transformer=PatchTSTEncoder(patch_len=self.P,n_layers=2,d_model=512,n_heads=4,
                                 shared_embedding=True,d_ff=1024,norm='Layer',attn_dropout=0.,dropout=0.1,activation='gelu',store_attn=False,res_attention=False,pre_norm=True,pe='zeros',learn_pe=True,verbose=False)
+        
         self.ts_encoder = llm_projection(self.ts_conv_module,64,self.ts_transformer,512,1024,3072)
         self.ts_encoder.to(self.device)
         
@@ -70,7 +71,7 @@ class LLM_wrapper(nn.Module):
         ##ts_embeddings=ts_embeddings.view(bs*c_in,num_ts_tokens,-1)
         
         input_embeds=self.llm_model.get_input_embeddings()(input_ids) ##[bs,seq_len,d_emb]
-        print(f'input_embeds_shape:{input_embeds.shape}')
+        ###print(f'input_embeds_shape:{input_embeds.shape}')
         input_embeds.requires_grad_(requires_grad=True)
         text_emb_dim= input_embeds.shape[2]
 
@@ -80,7 +81,7 @@ class LLM_wrapper(nn.Module):
         text_container=torch.zeros((T_new,text_emb_dim),device=self.device)
         flat_ts_embeddings=ts_embeddings.view(-1,c_in*num_ts_tokens,ts_emb_dim)
         flat_ts_embeddings=flat_ts_embeddings.squeeze(0)
-        print(f'ts_embedding_flat:{flat_ts_embeddings.shape}')
+        ##print(f'ts_embedding_flat:{flat_ts_embeddings.shape}')
         
         flat_text_embeddings=input_embeds.squeeze(0)
         
@@ -94,7 +95,7 @@ class LLM_wrapper(nn.Module):
         ts_embeds_assemb= ts_container.scatter(dim=0,index=ts_indices,src=flat_ts_embeddings)
         text_embeds_assemb=text_container.scatter(dim=0,index=text_indices,src=flat_text_embeddings)
         final_tensor=ts_embeds_assemb+text_embeds_assemb
-        print(f'final_tensor:{final_tensor.shape}')
+        ###print(f'final_tensor:{final_tensor.shape}')
         assemb_embed_tensor.append(final_tensor)
         
         return torch.stack(assemb_embed_tensor)
@@ -151,7 +152,7 @@ for p in model_wrapper.ts_encoder.parameters():
 all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm_model.get_input_embeddings().parameters()))
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
-for epoch in range(1):  ##1 epochs
+for epoch in range(2):  ##1 epochs
     pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
     num_batches = 0
     running_loss=0
@@ -175,12 +176,22 @@ for epoch in range(1):  ##1 epochs
         num_batches+=1
         optimizer.step()
         ###gradient checking
-        check_ts_gradients(model_wrapper.ts_encoder)
+        ##check_ts_gradients(model_wrapper.ts_encoder)
         optimizer.zero_grad()
         pbar.set_postfix(loss=loss.item())
         epoch_loss=running_loss/num_batches
         epoch_losses.append(epoch_loss)
-        ctr+=1
+        ###ctr+=1
+
+x=len(epoch_losses)
+###save the ts_encoder and the llm_input_embedding
+saved_file=os.path.join(os.environ["SLURM_TMPDIR"],'ts_enc_stage1_ver2.pth')
+torch.save(model_wrapper.ts_encoder.state_dict(),saved_file)
+###embedding layer 
+embeds = model_wrapper.llm_model.get_input_embeddings().state_dict()
+torch.save(embeds, os.path.join(os.environ["SLURM_TMPDIR"], "aligned_embeddings_ver2.pt"))
+##tokenizer saved
+tokenizer.save_pretrained(os.path.join(os.environ["SLURM_TMPDIR"],'llm_tokenizer'))
 
 ### save the plot
 out_path = os.path.join(os.environ["SLURM_TMPDIR"], "training_loss_MTS.png")
@@ -189,7 +200,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 plt.figure(figsize=(8, 5))
-plt.plot(ctr,epoch_losses, marker='o')
+plt.plot(x,epoch_losses, marker='o')
 plt.title("Training Loss Trend Over Epochs")
 plt.xlabel("Epoch")
 plt.ylabel("Average Loss")

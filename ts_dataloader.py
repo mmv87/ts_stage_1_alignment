@@ -61,9 +61,11 @@ class ts_textual(Dataset):
                         self.byte_offset.append(current_pos)
                     except:
                         print('error in the line')
+        
+        self.sliced_offset=self.byte_offset[:5000]
 
     def __len__(self):
-        return len(self.byte_offset)
+        return len(self.sliced_offset)
     
     def pad_and_patchify(self,ts_input:list,p,s):
         seq_len_list=[]
@@ -223,7 +225,7 @@ class ts_textual(Dataset):
     def __getitem__(self,idx):
         ##self.byte_offset[idx]
         with open(self.file,'rb') as file:
-            file.seek(self.byte_offset[idx])
+            file.seek(self.sliced_offset[idx])
             line =file.readline()
             sample =json.loads(line)
             
