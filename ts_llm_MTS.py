@@ -65,11 +65,12 @@ class LLM_wrapper(nn.Module):
         c_in=ts_embeddings.shape[1]
         assert c_in==channels
         num_ts_tokens=ts_embeddings.shape[2]
-        
-        ts_embeddings=ts_embeddings.view(bs*c_in,num_ts_tokens,-1)
-        ts_emb_dim=ts_embeddings.shape[2]
+        ts_emb_dim=ts_embeddings.shape[3]
+
+        ##ts_embeddings=ts_embeddings.view(bs*c_in,num_ts_tokens,-1)
         
         input_embeds=self.llm_model.get_input_embeddings()(input_ids) ##[bs,seq_len,d_emb]
+        print(f'input_embeds_shape:{input_embeds.shape}')
         input_embeds.requires_grad_(requires_grad=True)
         text_emb_dim= input_embeds.shape[2]
 
@@ -79,6 +80,8 @@ class LLM_wrapper(nn.Module):
         text_container=torch.zeros((T_new,text_emb_dim),device=self.device)
         flat_ts_embeddings=ts_embeddings.view(-1,c_in*num_ts_tokens,ts_emb_dim)
         flat_ts_embeddings=flat_ts_embeddings.squeeze(0)
+        print(f'ts_embedding_flat:{flat_ts_embeddings.shape}')
+        
         flat_text_embeddings=input_embeds.squeeze(0)
         
         ##get the indices after the <ts>....<ts/> placeholder is offseted
@@ -91,6 +94,7 @@ class LLM_wrapper(nn.Module):
         ts_embeds_assemb= ts_container.scatter(dim=0,index=ts_indices,src=flat_ts_embeddings)
         text_embeds_assemb=text_container.scatter(dim=0,index=text_indices,src=flat_text_embeddings)
         final_tensor=ts_embeds_assemb+text_embeds_assemb
+        print(f'final_tensor:{final_tensor.shape}')
         assemb_embed_tensor.append(final_tensor)
         
         return torch.stack(assemb_embed_tensor)
