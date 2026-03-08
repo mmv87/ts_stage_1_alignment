@@ -83,19 +83,13 @@ class ts_textual(Dataset):
                 for metric in ts_input:
                     ts_univariate_tensor=torch.tensor(metric).squeeze(-1).unsqueeze(0) ##reshape to (1,seq_len)
                     ##ts_univariate_tensor=ts_univariate_tensor.
-                    ##print(ts_univariate_tensor.shape)
                     pad_width =max(seq_len_list)-ts_univariate_tensor.shape[1]
                     repeats=pad_width//2
-                    ###print(repeats)
                     pad_repeat=pad_pattern.repeat(repeats)
-                    ##print(pad_repeat)
                     ts_uni_padded=torch.cat([ts_univariate_tensor,pad_repeat.view(1,-1)],dim=1)
-                    ##print(f'ts_padded:{ts_uni_padded.shape}')
                     ts_padded_list.append(ts_uni_padded) ##list of tensors in a multivariate channel
                     
-                    
                 ts_local_padded=torch.cat(ts_padded_list)
-                ###print(f'ts_after_assem :{ts_local_padded.shape}')
                 ts_local_padded=ts_local_padded.unsqueeze(-1)
                 seq_len=ts_local_padded.shape[1]
                 ##apply second_level padding
@@ -123,9 +117,6 @@ class ts_textual(Dataset):
                 
                 ###logic to correct the stagger 
             else:
-                ###pad based on the patch and stride
-                ###print('uniform')
-                ##ts_type='uniform'
                 ts_tensor=torch.tensor(ts_input)
                 seq_len=ts_tensor.shape[1]
                 if (seq_len%p)==0:      ##zero_padding
