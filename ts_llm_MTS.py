@@ -34,7 +34,7 @@ _json_file = os.path.join(os.environ["SLURM_TMPDIR"],"align_256.jsonl")
 
 ###datapipeline
 dataset=ts_textual(128,128,tokenizer,_json_file,device=device)
-dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer,device=device))
+dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
 """
 dataset= ts_multimodal_text(128,128,_json_file,tokenizer,device=device,model_dtype=None)
 dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer,device=device))"""
