@@ -107,10 +107,10 @@ class LLM_wrapper(nn.Module):
         ##slicing
         ##ts_embedding_sliced =ts_embedding[ts_masks] ##flattened ts_embeddings
         input_embeddings= self.assemble_input_embeds(input_ids,ts_embedding,ts_idx,text_idx,ts_pairs)
-        print(f'input_embeddigs:{input_embeddings.shape}')
+        ##print(f'input_embeddigs:{input_embeddings.shape}')
         attention_mask = attention_mask.to(self.device)
         labels = labels.to(self.device)
-        print(f'labels:{labels.shape}')
+        ##print(f'labels:{labels.shape}')
         output= self.llm_model(inputs_embeds=input_embeddings,attention_mask=attention_mask,labels=labels)
         
         return output,input_embeddings
@@ -152,6 +152,7 @@ for p in model_wrapper.ts_encoder.parameters():
 all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm_model.get_input_embeddings().parameters()))
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
+
 for epoch in range(2):  ##1 epochs
     pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
     num_batches = 0
@@ -183,7 +184,7 @@ for epoch in range(2):  ##1 epochs
         epoch_losses.append(epoch_loss)
         ###ctr+=1
 
-x=len(epoch_losses)
+##x=len(epoch_losses)
 ###save the ts_encoder and the llm_input_embedding
 saved_file=os.path.join(os.environ["SLURM_TMPDIR"],'ts_enc_stage1_ver2.pth')
 torch.save(model_wrapper.ts_encoder.state_dict(),saved_file)
@@ -200,7 +201,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 plt.figure(figsize=(8, 5))
-plt.plot(x,epoch_losses, marker='o')
+plt.plot(epoch_losses, marker='o')
 plt.title("Training Loss Trend Over Epochs")
 plt.xlabel("Epoch")
 plt.ylabel("Average Loss")
