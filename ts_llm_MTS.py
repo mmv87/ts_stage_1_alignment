@@ -106,8 +106,10 @@ class LLM_wrapper(nn.Module):
         ##slicing
         ##ts_embedding_sliced =ts_embedding[ts_masks] ##flattened ts_embeddings
         input_embeddings= self.assemble_input_embeds(input_ids,ts_embedding,ts_idx,text_idx,ts_pairs)
+        print(f'input_embeddigs:{input_embeddings.shape}')
         attention_mask = attention_mask.to(self.device)
         labels = labels.to(self.device)
+        print(f'labels:{labels.shape}')
         output= self.llm_model(inputs_embeds=input_embeddings,attention_mask=attention_mask,labels=labels)
         
         return output,input_embeddings
