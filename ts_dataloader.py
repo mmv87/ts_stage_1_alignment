@@ -303,10 +303,10 @@ dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lamb
 for batch in dataloader:
   print(batch['input_ids'].shape)
   print(batch['attention_mask'].shape)
-  print(batch['labels'].shape)"""
-  """print(batch['time_series'].shape)
+  print(batch['labels'].shape)
+  print(batch['time_series'].shape)
   print(batch['ts_indices'].shape)
   print(batch['textual_indices'].shape)
-  print(batch['ts_pairs'].shape)"""
+  print(batch['ts_pairs'].shape)
   
-  break
+  break"""
