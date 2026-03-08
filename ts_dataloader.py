@@ -9,7 +9,7 @@ from torch.utils.data import Dataset,DataLoader
 import torch
 import json
 from transformers import AutoModelForCausalLM,AutoTokenizer
-
+"""
 abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
 ##print('path_read')
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
@@ -19,8 +19,8 @@ model_name='./hub/microsoft/phi-4-mini-reasoning'
 device ='cpu'
 
 print(device)
-"""model=AutoModelForCausalLM.from_pretrained(abs_modelpath,local_files_only=True)
-model.to(device)"""
+model=AutoModelForCausalLM.from_pretrained(abs_modelpath,local_files_only=True)
+model.to(device)
 tokenizer=AutoTokenizer.from_pretrained(abs_modelpath,local_file_only=True)
 input_text='The following timeseries in the model'
 tokenized = tokenizer(input_text,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
@@ -29,7 +29,7 @@ special_token_dict={'pad_token':"<|pad|>","additional_special_tokens":['<ts>','<
 tokenizer.add_special_tokens(special_token_dict)
 
 align_256_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/align_256.jsonl'
-ift_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/ift.jsonl'
+ift_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/ift.jsonl'"""
 ##print(align_256_file)
 
 ## Dataset class to get the pipeline for a sample
@@ -294,7 +294,7 @@ def collate_func(batch,tokenizer=None,device=device):
 
 ###dataset=ts_textual(128,128,_json_path,tokenizer_modified,device=device,model_dtype=None)
 ##dataloader
-dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
+"""dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
 dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer,device=device))
 
 for batch in dataloader:
@@ -305,4 +305,4 @@ for batch in dataloader:
   print(batch['ts_indices'].shape)
   print(batch['textual_indices'].shape)
   print(batch['ts_pairs'].shape)
-  break
+  break"""
