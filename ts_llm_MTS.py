@@ -14,8 +14,11 @@ from modules.ts_encoder import llm_projection
 
 device ='cuda' if torch.cuda.is_available() else 'cpu'
 
+model_name="/home/mmk/projects/def-zonata/mmk/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/7a8c4e2e81eae20a606d811f475d7dc316dd916a"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+os.environ["HF_HUB_OFFLINE"] = "1"
 ##loading the base LLM model and tokenizer
-model_name='microsoft/Phi-4-mini-reasoning'
+##model_name='microsoft/Phi-4-mini-reasoning'
 model = AutoModelForCausalLM.from_pretrained(model_name,local_files_only=True)
 tokenizer =AutoTokenizer.from_pretrained(model_name,local_files_only=True)
 model_dtype=next(model.parameters()).dtype
