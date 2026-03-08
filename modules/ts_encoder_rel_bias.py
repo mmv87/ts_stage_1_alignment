@@ -15,7 +15,7 @@ import math
 ###modify the ts_transformer so that it handle variable length sequences
 ## AliBi style relational positional basis
 
-from torchinfo import summary
+##from torchinfo import summary
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 ##print(device)
