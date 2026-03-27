@@ -155,7 +155,7 @@ all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
 
-for epoch in range(1):  ##1 epochs
+for epoch in range(2):  ##1 epochs
     pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
     num_batches = 0
     running_loss=0
