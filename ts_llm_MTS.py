@@ -161,7 +161,8 @@ for epoch in range(2):  ##1 epochs
     running_loss=0
     epoch_loss=0
     ctr=0
-    for batch in pbar:
+    for i,batch in enumerate(pbar):
+        
         input_ids=batch['input_ids'].to(device) ## input and output
         labels_batch=batch['labels'].to(device)
         attention_mask=batch['attention_mask'].to(device)
@@ -176,6 +177,7 @@ for epoch in range(2):  ##1 epochs
         outputs,_= model_wrapper(input_ids=input_ids,ts_input=ts_input,ts_pairs=ts_pairs,ts_idx=ts_indices,text_idx=textual_indices,attention_mask=attention_mask,labels=labels_batch,)
         loss=outputs.loss
         loss.backward()  
+        print(f'batch{i} gradient done')
         check_ts_gradients(model_wrapper.ts_encoder)##gradient calculation
         running_loss+=loss.item()
         num_batches+=1
