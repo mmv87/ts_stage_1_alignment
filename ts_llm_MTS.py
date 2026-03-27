@@ -122,28 +122,29 @@ model_wrapper.to(device)
 
 ####check the gradient
 def check_ts_gradients(ts_encoder):
-    print("\n--- Gradient Flow Check: TS Encoder ---")
+    print("\n--- Gradient Flow Check: TS Encoder ---",flush=True)
     any_grad = False
     for name, param in ts_encoder.named_parameters():
         if not param.requires_grad:
-            print(f"{name}: Frozen (requires_grad=False)")
+            print(f"{name}: Frozen (requires_grad=False)",flush=True)
             continue
         if param.grad is None:
-            print(f"{name}: Grad is None (Graph Broken!)")
+            print(f"{name}: Grad is None (Graph Broken!)",flush=True)
         else:
             grad_norm = param.grad.norm().item()
-            print(f"{name}: Grad Norm = {grad_norm:.5f}")
+            print(f"{name}: Grad Norm = {grad_norm:.5f}",flush=True)
             if grad_norm > 1e-6:
                 any_grad = True
                 
     if not any_grad:
-        print("WARNING: No trainable parameters in TS Encoder received gradients.")
+        print("WARNING: No trainable parameters in TS Encoder received gradients.",flush=True)
     else:
-        print("Success: Gradients are flowing to TS Encoder.")
+        print("Success: Gradients are flowing to TS Encoder.",flush=True)
 
 ##** freeze the LLM for stage-1 training
 for p in model_wrapper.llm_model.parameters():
     p.requires_grad=False
+    
 ##unfreeze the input_embedding and ts_encoder
 for p in model_wrapper.llm_model.get_input_embeddings().parameters():
     p.requires_grad = True
@@ -151,7 +152,6 @@ for p in model_wrapper.ts_encoder.parameters():
     p.requires_grad = True
     
 all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm_model.get_input_embeddings().parameters()))
-
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
 
@@ -180,7 +180,6 @@ for epoch in range(1):  ##1 epochs
         running_loss+=loss.item()
         num_batches+=1
         optimizer.step()
-        ###gradient checking
         pbar.set_postfix(loss=loss.item())
         epoch_loss=running_loss/num_batches
         epoch_losses.append(epoch_loss)
@@ -193,16 +192,16 @@ torch.save(model_wrapper.ts_encoder.state_dict(),saved_file)
 ###embedding layer 
 embeds = model_wrapper.llm_model.get_input_embeddings().state_dict()
 torch.save(embeds, os.path.join(os.environ["SLURM_TMPDIR"], "aligned_embeddings_ver2.pt"))
+
 ##tokenizer saved
 tokenizer.save_pretrained(os.path.join(os.environ["SLURM_TMPDIR"],'llm_tokenizer'))
-
 ### save the plot
 out_path = os.path.join(os.environ["SLURM_TMPDIR"], "training_loss_MTS.png")
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 
-plt.figure(figsize=(8, 5))
+plt.figure(figsize=(8, 10))
 plt.plot(epoch_losses, marker='o')
 plt.title("Training Loss Trend Over Epochs")
 plt.xlabel("Epoch")
