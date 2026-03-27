@@ -72,7 +72,7 @@ class LLM_wrapper(nn.Module):
         
         input_embeds=self.llm_model.get_input_embeddings()(input_ids) ##[bs,seq_len,d_emb]
         ###print(f'input_embeds_shape:{input_embeds.shape}')
-        input_embeds.requires_grad_(requires_grad=True)
+        input_embeds.requires_grad_(requires_grad=True) ### to make sure operations on embedding_tensor is maintained
         text_emb_dim= input_embeds.shape[2]
 
         assert (ts_emb_dim==text_emb_dim)
@@ -84,7 +84,6 @@ class LLM_wrapper(nn.Module):
         ##print(f'ts_embedding_flat:{flat_ts_embeddings.shape}')
         
         flat_text_embeddings=input_embeds.squeeze(0)
-        
         ##get the indices after the <ts>....<ts/> placeholder is offseted
         ts_indices=ts_token_idx.squeeze(0).view(-1,1)
         ts_indices=ts_indices.expand(-1,text_emb_dim)
@@ -120,6 +119,7 @@ conv_layers=[(128,5,1),(64,3,1)]
 model_wrapper=LLM_wrapper(tokenizer,conv_layers,128,model,device=device)
 model_wrapper.train()
 model_wrapper.to(device)
+
 ####check the gradient
 def check_ts_gradients(ts_encoder):
     print("\n--- Gradient Flow Check: TS Encoder ---")
@@ -133,7 +133,7 @@ def check_ts_gradients(ts_encoder):
         else:
             grad_norm = param.grad.norm().item()
             print(f"{name}: Grad Norm = {grad_norm:.5f}")
-            if grad_norm > 1e-9:
+            if grad_norm > 1e-6:
                 any_grad = True
                 
     if not any_grad:
@@ -144,16 +144,18 @@ def check_ts_gradients(ts_encoder):
 ##** freeze the LLM for stage-1 training
 for p in model_wrapper.llm_model.parameters():
     p.requires_grad=False
+##unfreeze the input_embedding and ts_encoder
 for p in model_wrapper.llm_model.get_input_embeddings().parameters():
     p.requires_grad = True
 for p in model_wrapper.ts_encoder.parameters():
     p.requires_grad = True
     
 all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm_model.get_input_embeddings().parameters()))
+
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
 
-for epoch in range(2):  ##1 epochs
+for epoch in range(1):  ##1 epochs
     pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
     num_batches = 0
     running_loss=0
@@ -170,15 +172,15 @@ for epoch in range(2):  ##1 epochs
         ###ts_mask = batch['ts_mask'].to(device)
 
         ##model_wrapper=LLM_wrapper(tokenizer,ts_input,model,device=device)
+        optimizer.zero_grad()
         outputs,_= model_wrapper(input_ids=input_ids,ts_input=ts_input,ts_pairs=ts_pairs,ts_idx=ts_indices,text_idx=textual_indices,attention_mask=attention_mask,labels=labels_batch,)
         loss=outputs.loss
-        loss.backward()                     ##gradient calculation
+        loss.backward()  
+        check_ts_gradients(model_wrapper.ts_encoder)##gradient calculation
         running_loss+=loss.item()
         num_batches+=1
         optimizer.step()
         ###gradient checking
-        ##check_ts_gradients(model_wrapper.ts_encoder)
-        optimizer.zero_grad()
         pbar.set_postfix(loss=loss.item())
         epoch_loss=running_loss/num_batches
         epoch_losses.append(epoch_loss)
