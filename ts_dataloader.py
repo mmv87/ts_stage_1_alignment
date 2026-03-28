@@ -265,7 +265,7 @@ class ts_textual(Dataset):
 
 
 ###collate function
-def collate_func(batch,tokenizer=None):
+def collate_func(batch):
     input_ids = [x['input_ids'] for x in batch]
     labels_batch=[x['labels'] for x in batch]
     attention_mask_batch=[x['attention_mask'] for x in batch]
@@ -286,9 +286,9 @@ def collate_func(batch,tokenizer=None):
 
 ###dataset=ts_textual(128,128,_json_path,tokenizer_modified,device=device,model_dtype=None)
 ##dataloader
-dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
+"""dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
 dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
-
+"""
 """
 for batch in dataloader:
   print(batch['input_ids'].shape)
