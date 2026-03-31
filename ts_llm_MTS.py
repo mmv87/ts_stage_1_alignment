@@ -51,6 +51,12 @@ class LLM_wrapper(nn.Module):
         self.device=device
         self.conv_layers=conv_layers
         
+        for p in model_wrapper.llm_model.parameters():
+            p.requires_grad=False   
+                
+        self.input_embeds=self.llm.get_input_embeddings()
+        self.input_embeds.requires_grad_(True)
+   
         self.ts_conv_module=ConvFeatureExtraction(self.conv_layers,dropout=0.1)
         self.ts_transformer=PatchTSTEncoder(patch_len=self.P,n_layers=2,d_model=512,n_heads=4,
                                 shared_embedding=True,d_ff=1024,norm='Layer',attn_dropout=0.,dropout=0.1,activation='gelu',store_attn=False,res_attention=False,pre_norm=True,pe='zeros',learn_pe=True,verbose=False)
@@ -68,11 +74,8 @@ class LLM_wrapper(nn.Module):
         num_ts_tokens=ts_embeddings.shape[2]
         ts_emb_dim=ts_embeddings.shape[3]
 
-        ##ts_embeddings=ts_embeddings.view(bs*c_in,num_ts_tokens,-1)
-        
-        input_embeds=self.llm_model.get_input_embeddings()(input_ids) ##[bs,seq_len,d_emb]
-        ###print(f'input_embeds_shape:{input_embeds.shape}')
-        input_embeds.requires_grad_(requires_grad=True) ### to make sure operations on embedding_tensor is maintained
+        input_embeds=self.input_embeds(input_ids) ##[bs,seq_len,d_emb]
+        ##input_embeds.requires_grad_(requires_grad=True) ### to make sure operations on embedding_tensor is maintained
         text_emb_dim= input_embeds.shape[2]
 
         assert (ts_emb_dim==text_emb_dim)
@@ -142,12 +145,11 @@ def check_ts_gradients(ts_encoder):
         print("Success: Gradients are flowing to TS Encoder.")
 
 ##** freeze the LLM for stage-1 training
-for p in model_wrapper.llm_model.parameters():
-    p.requires_grad=False
-    
+"""for p in model_wrapper.llm_model.parameters():
+    p.requires_grad=False"""
 ##unfreeze the input_embedding and ts_encoder
-for p in model_wrapper.llm_model.get_input_embeddings().parameters():
-    p.requires_grad = True
+"""for p in model_wrapper.llm_model.get_input_embeddings().parameters():
+    p.requires_grad = True"""
 for p in model_wrapper.ts_encoder.parameters():
     p.requires_grad = True
     
@@ -161,8 +163,7 @@ for epoch in range(1):  ##1 epochs
     running_loss=0
     epoch_loss=0
     ctr=0
-    for i,batch in enumerate(pbar):
-        
+    for batch in pbar:
         input_ids=batch['input_ids'].to(device) ## input and output
         labels_batch=batch['labels'].to(device)
         attention_mask=batch['attention_mask'].to(device)
