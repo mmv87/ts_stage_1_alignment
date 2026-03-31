@@ -80,11 +80,10 @@ class LLM_wrapper(nn.Module):
         input_embeds=self.input_embeds(input_ids) ##[bs,seq_len,d_emb]
         ##input_embeds.requires_grad_(requires_grad=True) ### to make sure operations on embedding_tensor is maintained
         text_emb_dim= input_embeds.shape[2]
-
         assert (ts_emb_dim==text_emb_dim)
         T_new=ts_token_idx.shape[1]+text_token_idx.shape[1]
         ts_container =torch.zeros((T_new,text_emb_dim),device=self.device) ### total_idx,total_idx
-        text_container=torch.zeros((T_new,text_emb_dim),device=self.device)
+        ##text_container=torch.zeros((T_new,text_emb_dim),device=self.device)
         flat_ts_embeddings=ts_embeddings.view(-1,c_in*num_ts_tokens,ts_emb_dim)
         flat_ts_embeddings=flat_ts_embeddings.squeeze(0)
         ##print(f'ts_embedding_flat:{flat_ts_embeddings.shape}')
@@ -98,9 +97,9 @@ class LLM_wrapper(nn.Module):
         ##print(idx.shape)
         ###print(idx_expanded)
         ts_embeds_assemb= ts_container.scatter(dim=0,index=ts_indices,src=flat_ts_embeddings)
-        text_embeds_assemb=text_container.scatter(dim=0,index=text_indices,src=flat_text_embeddings)
-        final_tensor=ts_embeds_assemb+text_embeds_assemb
-        ###print(f'final_tensor:{final_tensor.shape}')
+        final_tensor=ts_embeds_assemb.scatter(dim=0,index=text_indices,src=flat_text_embeddings)
+        ##final_tensor=ts_embeds_assemb+text_embeds_assemb
+        print(f'final_tensor:{final_tensor.shape}')
         assemb_embed_tensor.append(final_tensor)
         
         return torch.stack(assemb_embed_tensor)
