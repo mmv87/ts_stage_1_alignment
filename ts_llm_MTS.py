@@ -50,11 +50,8 @@ class LLM_wrapper(nn.Module):
         self.P=patch_len
         self.device=device
         self.conv_layers=conv_layers
-        
-       
-        
-                
-        self.input_embeds=self.llm.get_input_embeddings()
+
+        self.input_embeds=self.llm_model.get_input_embeddings()
         self.input_embeds.requires_grad_(True)
         
         self.ts_conv_module=ConvFeatureExtraction(self.conv_layers,dropout=0.1)
