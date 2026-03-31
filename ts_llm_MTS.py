@@ -51,11 +51,8 @@ class LLM_wrapper(nn.Module):
         self.device=device
         self.conv_layers=conv_layers
         
-        for p in self.llm_model.parameters():
-            p.requires_grad=False   
-            
-        for p in self.ts_encoder.parameters():
-            p.requires_grad = True
+       
+        
                 
         self.input_embeds=self.llm.get_input_embeddings()
         self.input_embeds.requires_grad_(True)
@@ -63,9 +60,15 @@ class LLM_wrapper(nn.Module):
         self.ts_conv_module=ConvFeatureExtraction(self.conv_layers,dropout=0.1)
         self.ts_transformer=PatchTSTEncoder(patch_len=self.P,n_layers=2,d_model=512,n_heads=4,
                                 shared_embedding=True,d_ff=1024,norm='Layer',attn_dropout=0.,dropout=0.1,activation='gelu',store_attn=False,res_attention=False,pre_norm=True,pe='zeros',learn_pe=True,verbose=False)
-        
         self.ts_encoder = llm_projection(self.ts_conv_module,64,self.ts_transformer,512,1024,3072)
+        for p in self.ts_encoder.parameters():
+            p.requires_grad = True
+        
         self.ts_encoder.to(self.device)
+        
+        for p in self.llm_model.parameters():
+            p.requires_grad = False   
+            
         
     def assemble_input_embeds(self,input_ids,ts_embeddings,ts_token_idx,text_token_idx,ts_pairs:torch.tensor):
         ###logic to assemble textual and ts_tokens 
