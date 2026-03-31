@@ -59,7 +59,7 @@ class ts_textual(Dataset):
                     except:
                         print('error in the line')
         
-        self.sliced_offset=self.byte_offset[:10000]
+        self.sliced_offset=self.byte_offset[:50000]
 
     def __len__(self):
         return len(self.sliced_offset)
@@ -264,7 +264,7 @@ class ts_textual(Dataset):
             }
 
 
-###collate function
+###collate functions
 def collate_func(batch,tokenizer=None):
     input_ids = [x['input_ids'] for x in batch]
     labels_batch=[x['labels'] for x in batch]

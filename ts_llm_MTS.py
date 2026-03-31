@@ -51,12 +51,15 @@ class LLM_wrapper(nn.Module):
         self.device=device
         self.conv_layers=conv_layers
         
-        for p in model_wrapper.llm_model.parameters():
+        for p in self.llm_model.parameters():
             p.requires_grad=False   
+            
+        for p in self.ts_encoder.parameters():
+            p.requires_grad = True
                 
         self.input_embeds=self.llm.get_input_embeddings()
         self.input_embeds.requires_grad_(True)
-   
+        
         self.ts_conv_module=ConvFeatureExtraction(self.conv_layers,dropout=0.1)
         self.ts_transformer=PatchTSTEncoder(patch_len=self.P,n_layers=2,d_model=512,n_heads=4,
                                 shared_embedding=True,d_ff=1024,norm='Layer',attn_dropout=0.,dropout=0.1,activation='gelu',store_attn=False,res_attention=False,pre_norm=True,pe='zeros',learn_pe=True,verbose=False)
@@ -135,7 +138,7 @@ def check_ts_gradients(ts_encoder):
             print(f"{name}: Grad is None (Graph Broken!)")
         else:
             grad_norm = param.grad.norm().item()
-            print(f"{name}: Grad Norm = {grad_norm:.6f}")
+            print(f"{name}: Grad Norm = {grad_norm:.4f}")
             if grad_norm > 1e-6:
                 any_grad = True
                 
@@ -150,8 +153,6 @@ def check_ts_gradients(ts_encoder):
 ##unfreeze the input_embedding and ts_encoder
 """for p in model_wrapper.llm_model.get_input_embeddings().parameters():
     p.requires_grad = True"""
-for p in model_wrapper.ts_encoder.parameters():
-    p.requires_grad = True
     
 all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm_model.get_input_embeddings().parameters()))
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
@@ -172,7 +173,6 @@ for epoch in range(1):  ##1 epochs
         ts_indices=batch["ts_indices"].to(device)
         textual_indices=batch['textual_indices'].to(device)
         ###ts_mask = batch['ts_mask'].to(device)
-
         ##model_wrapper=LLM_wrapper(tokenizer,ts_input,model,device=device)
         optimizer.zero_grad()
         outputs,_= model_wrapper(input_ids=input_ids,ts_input=ts_input,ts_pairs=ts_pairs,ts_idx=ts_indices,text_idx=textual_indices,attention_mask=attention_mask,labels=labels_batch,)
