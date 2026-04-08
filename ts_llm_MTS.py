@@ -66,7 +66,6 @@ class LLM_wrapper(nn.Module):
         for p in self.llm_model.parameters():
             p.requires_grad = False   
             
-        
     def assemble_input_embeds(self,input_ids,ts_embeddings,ts_token_idx,text_token_idx,ts_pairs:torch.tensor):
         ###logic to assemble textual and ts_tokens 
         assemb_embed_tensor=[]
@@ -182,6 +181,7 @@ for epoch in range(1):  ##1 epochs
         running_loss+=loss.item()
         num_batches+=1
         optimizer.step()
+        ##checkpointing if any
         pbar.set_postfix(loss=loss.item())
         epoch_loss=running_loss/num_batches
         epoch_losses.append(epoch_loss)
@@ -189,11 +189,11 @@ for epoch in range(1):  ##1 epochs
 
 ##x=len(epoch_losses)
 ###save the ts_encoder and the llm_input_embedding
-saved_file=os.path.join(os.environ["SLURM_TMPDIR"],'ts_enc_stage1_ver2.pth')
+saved_file=os.path.join(os.environ["SLURM_TMPDIR"],'ts_enc_stage1_ver3.pth')
 torch.save(model_wrapper.ts_encoder.state_dict(),saved_file)
 ###embedding layer 
 embeds = model_wrapper.llm_model.get_input_embeddings().state_dict()
-torch.save(embeds, os.path.join(os.environ["SLURM_TMPDIR"], "aligned_embeddings_ver2.pt"))
+torch.save(embeds, os.path.join(os.environ["SLURM_TMPDIR"], "aligned_embeddings.pt"))
 
 ##tokenizer saved
 tokenizer.save_pretrained(os.path.join(os.environ["SLURM_TMPDIR"],'llm_tokenizer'))
