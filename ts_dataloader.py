@@ -4,15 +4,14 @@
 ### for the subset of the dataset
 import os
 ###os.environ['HF_HOME']='D:/hf_cache'
-
 from torch.utils.data import Dataset,DataLoader
 import torch
 import json
 from transformers import AutoModelForCausalLM,AutoTokenizer
 import numpy as np
 device ='cuda' if torch.cuda.is_available() else 'cpu'
-
-"""abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
+"""
+abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
 ##print('path_read')
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 os.environ["HF_HUB_OFFLINE"] = "1"
@@ -28,7 +27,8 @@ tokenized = tokenizer(input_text,return_tensors='pt',add_special_tokens=False)['
 ###add special_tokens to the tokenizer
 special_token_dict={'pad_token':"<|pad|>","additional_special_tokens":['<ts>','<ts/>']}
 tokenizer.add_special_tokens(special_token_dict)
-align_256_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/training_dataset/ChatTS-Training-Dataset/align_256/train.jsonl'
+##align_256_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/training_dataset/ChatTS-Training-Dataset/align_256/train.jsonl'
+sft_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/training_dataset/ChatTS-Training-Dataset/sft/sft_train.jsonl'
 """
 ##ift_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/ift.jsonl'
 ##print(align_256_file)
@@ -352,8 +352,10 @@ def collate_func(batch,tokenizer=None):
 
 ###dataset=ts_textual(128,128,_json_path,tokenizer_modified,device=device,model_dtype=None)
 ##dataloader
-"""dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
+"""
+dataset_for_test=ts_textual(128,128,tokenizer,sft_file,device=device)
 dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
+
 for idx,batch in enumerate(dataloader):
     if idx<2:
         print(batch['input_ids'])
@@ -362,5 +364,6 @@ for idx,batch in enumerate(dataloader):
         print(batch['time_series'].shape)
         print(batch['labels'])
     else:break"""
+    
   ###print(batch['labels'])
   

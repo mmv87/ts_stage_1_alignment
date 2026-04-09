@@ -30,7 +30,7 @@ model.resize_token_embeddings(len(tokenizer))
 
 ##dataset fetching
 import json
-_json_file = os.path.join(os.environ["SLURM_TMPDIR"],"align_256.jsonl")
+_json_file = os.path.join(os.environ["SLURM_TMPDIR"],"train.jsonl")
 
 ###datapipeline
 dataset=ts_textual(128,128,tokenizer,_json_file,device=device)
