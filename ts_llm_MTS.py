@@ -157,7 +157,7 @@ all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
 
-for epoch in range(1):  ##1 epochs
+for epoch in range(2):  ##1 epochs
     pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
     num_batches = 0
     running_loss=0
@@ -195,7 +195,6 @@ torch.save(model_wrapper.ts_encoder.state_dict(),saved_file)
 ###embedding layer 
 embeds = model_wrapper.llm_model.get_input_embeddings().state_dict()
 torch.save(embeds, os.path.join(os.environ["SLURM_TMPDIR"], "aligned_embeddings.pt"))
-
 ##tokenizer saved
 tokenizer.save_pretrained(os.path.join(os.environ["SLURM_TMPDIR"],'llm_tokenizer'))
 ### save the plot
