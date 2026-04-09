@@ -328,8 +328,7 @@ class ts_textual(Dataset):
             "attention_mask":attention_mask,
              "ts_indices":ts_tokens,
              "text_indices":text_tokens,
-             "ts_pairs":torch.tensor(ts_pairs),
-            }
+             "ts_pairs":torch.tensor(ts_pairs),}
 
 ###collate function
 def collate_func(batch,tokenizer=None):
