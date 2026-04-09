@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 ##from TS_encoder import PatchTSTEncoder
 from  transformers import AutoModelForCausalLM,AutoTokenizer
-from ts_dataloader import ts_textual,collate_func
+from ts_dataloader_ import ts_textual,collate_func
 import os
 import sys
 import numpy as np
