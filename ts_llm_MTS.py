@@ -22,7 +22,6 @@ os.environ["HF_HUB_OFFLINE"] = "1"
 model = AutoModelForCausalLM.from_pretrained(model_name,local_files_only=True)
 tokenizer =AutoTokenizer.from_pretrained(model_name,local_files_only=True)
 model_dtype=next(model.parameters()).dtype
-
 ## to expand the tokenizer to add the special tokens <ts> <ts/>
 special_token_dict={'pad_token':"<|pad|>","additional_special_tokens":['<ts>','<ts/>']}
 tokenizer.add_special_tokens(special_token_dict)
@@ -79,6 +78,7 @@ class LLM_wrapper(nn.Module):
         input_embeds=self.input_embeds(input_ids) ##[bs,seq_len,d_emb]
         ##input_embeds.requires_grad_(requires_grad=True) ### to make sure operations on embedding_tensor is maintained
         text_emb_dim= input_embeds.shape[2]
+        print(f'ts_embedding_dim:{ts_emb_dim},text_embed_dim:{text_emb_dim}')
         assert (ts_emb_dim==text_emb_dim)
         T_new=ts_token_idx.shape[1]+text_token_idx.shape[1]
         ts_container =torch.zeros((T_new,text_emb_dim),device=self.device) ### total_idx,total_idx
@@ -107,6 +107,7 @@ class LLM_wrapper(nn.Module):
         ##convert the ts_patches into ts_embeddings
         ts_tensor = ts_input.to(self.device)  ## (bs,c_in,N,P)
         ts_embedding = self.ts_encoder(ts_tensor.to(self.device)) ## (bs,n_vars,num_patch,d_model)
+        print(ts_embedding.shape)
         ##slicing
         ##ts_embedding_sliced =ts_embedding[ts_masks] ##flattened ts_embeddings
         input_embeddings= self.assemble_input_embeds(input_ids,ts_embedding,ts_idx,text_idx,ts_pairs)
