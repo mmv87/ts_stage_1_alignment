@@ -78,7 +78,7 @@ class LLM_wrapper(nn.Module):
         input_embeds=self.input_embeds(input_ids) ##[bs,seq_len,d_emb]
         ##input_embeds.requires_grad_(requires_grad=True) ### to make sure operations on embedding_tensor is maintained
         text_emb_dim= input_embeds.shape[2]
-        print(f'ts_embedding_dim:{ts_emb_dim},text_embed_dim:{text_emb_dim}')
+        ##print(f'ts_embedding_dim:{ts_emb_dim},text_embed_dim:{text_emb_dim}')
         assert (ts_emb_dim==text_emb_dim)
         T_new=ts_token_idx.shape[1]+text_token_idx.shape[1]
         ts_container =torch.zeros((T_new,text_emb_dim),device=self.device) ### total_idx,total_idx

@@ -4,7 +4,6 @@
 ### for the subset of the dataset
 import os
 ###os.environ['HF_HOME']='D:/hf_cache'
-
 from torch.utils.data import Dataset,DataLoader
 import torch
 import json
@@ -12,6 +11,7 @@ from transformers import AutoModelForCausalLM,AutoTokenizer
 import numpy as np
 from torch.nn.utils.rnn import pad_sequence
 device ='cuda' if torch.cuda.is_available() else 'cpu'
+
 """
 abs_modelpath="D:/hf_cache/hub/models--microsoft--Phi-4-mini-reasoning/snapshots/0e3b1e2d02ee478a3743abe3f629e9c0cb722e0a"
 ##print('path_read')
@@ -61,7 +61,7 @@ class ts_textual(Dataset):
                     except:
                         print('error in the line')
         
-        self.sliced_offset=self.byte_offset[:5000]
+        self.sliced_offset=self.byte_offset[:5]
 
     def __len__(self):
         return len(self.sliced_offset)
@@ -110,7 +110,7 @@ class ts_textual(Dataset):
             # Update the offset for the NEXT iteration
             current_offset += meta_len
         
-        ##print(f'total_textual_len:{result.shape[1]}')
+        print(f'total_textual_len:{result.shape[1]}')
         return result,result.shape[1]
     
     def pad_and_patchify(self,ts_input:list,p,s):
@@ -279,12 +279,12 @@ class ts_textual(Dataset):
         offset_entries=(torch.arange(1,max_N+1).view(-1,1))
         ts_indices=(new_ts+offset_entries).t().flatten() ### indices for ts_patch insertions
         ###total_indices=torch.arange(1,40)
-        T_new=total_textual_tokens+(c_in*max_N)
-        is_ts_new=torch.zeros(T_new, dtype=torch.bool)
+        tot_multimodal_tokens=total_textual_tokens+(c_in*max_N)
+        is_ts_new=torch.zeros(tot_multimodal_tokens, dtype=torch.bool)
         is_ts_new[ts_indices]=True
         new_text_indices = torch.nonzero(~is_ts_new).squeeze()
         
-        return ts_indices,new_text_indices,T_new
+        return ts_indices,new_text_indices,tot_multimodal_tokens
         
     def __getitem__(self,idx):
         ##self.byte_offset[idx]
@@ -299,29 +299,30 @@ class ts_textual(Dataset):
         
         input_ids=self.tokenizer(input,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
         output_ids=self.tokenizer(output,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
-        ##print(f'test_output_ids:{output_ids}')
+        ###total_textual_ids
         combined_ids=torch.cat([input_ids,output_ids],dim=0)
+        print(combined_ids.shape)
         ##normalize the ts_data
         norm_ts,meta_prompt = self.sp_encoding(timeseries)
         ts_pairs,text_tokens_pre_meta_prompt=self.ts_pair_indices(combined_ids)
         ts_start=torch.tensor(ts_pairs)[:,0]        
-        new_text_prompt,total_text_tokens=self.insert_meta_prompt(combined_ids,meta_prompt,ts_start)
+        new_text_tokens,total_text_tokens=self.insert_meta_prompt(combined_ids,meta_prompt,ts_start)
         
-        ###print(f'total_textual:{combined_ids.shape}')
+        print(f'total_textual:{new_text_tokens.shape}')
         ts_patched =self.pad_and_patchify(norm_ts,self.patch_len,self.stride)
         ch=ts_patched.shape[0]
         N=ts_patched.shape[1]
         assert len(ts_pairs)==ch
-        ts_tokens,text_tokens,total_tokens=self._calculate_ts_indices(ts_pairs,ch,N,total_text_tokens)
+        ts_tokens,text_tokens,total_multlimodal_tokens=self._calculate_ts_indices(ts_pairs,ch,N,total_text_tokens)
         ##labels
         output_len=output_ids.shape[0]
-        labels = torch.full((total_tokens,),-100,dtype=torch.long,device=self.device)
+        labels = torch.full((total_multlimodal_tokens,),-100,dtype=torch.long,device=self.device)
         labels[-output_len:] = output_ids.clone()
         ###assert labels.shape==combined_ids.shape
         ##attention_mask
-        attention_mask=torch.ones(total_tokens,dtype=torch.long,device=self.device)
+        attention_mask=torch.ones(total_multlimodal_tokens,dtype=torch.long,device=self.device)
         ##attention_mask_batch.append(attention_mask)             
-        return{"input_ids":new_text_prompt,
+        return{"input_ids":new_text_tokens,
             "output_ids":output_ids,
             "ts_input":ts_patched,
             "labels":labels,
@@ -342,7 +343,7 @@ def collate_func(batch,tokenizer=None):
     text_indices=[x['text_indices'] for x in batch]
     
     return{
-        'input_ids':torch.stack(input_ids),
+        'input_ids':torch.cat(input_ids),
         "labels":torch.stack(labels_batch),
         'attention_mask':torch.stack(attention_mask_batch),
         "time_series":torch.stack(padded_ts_data),
@@ -355,8 +356,12 @@ def collate_func(batch,tokenizer=None):
 """
 dataset_for_test=ts_textual(128,128,tokenizer,align_256_file,device=device)
 dataloader=DataLoader(dataset_for_test,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
-
+input_embeds = model.get_input_embeddings()
 for idx,batch in enumerate(dataloader):
     print(batch['time_series'].shape)
-    print(batch['input_ids'].shape)
-    print(batch['labels'].shape)"""
+    ##print(tokenizer.decode(batch['input_ids'].squeeze_(0)[0]))
+    print(f"input_ids:{batch['input_ids'].shape}")
+    text_embedding = input_embeds(batch['input_ids'])
+    print(f'textual_embedding{text_embedding.shape}')
+    print(batch['labels'].shape)
+    print(batch['attention_mask'].shape)"""
