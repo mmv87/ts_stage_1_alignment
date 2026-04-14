@@ -30,7 +30,8 @@ model.resize_token_embeddings(len(tokenizer))
 ##dataset fetching
 import json
 _json_file = os.path.join(os.environ["SLURM_TMPDIR"],"train.jsonl")
-
+#ts_state_dict="/home/mmk/projects/def-zonata/mmk/version_3/stage_1_prewarmup"
+ts_warmup_weights=os.path.join(os.environ["SLURM_TMPDIR"],"ts_enc_stage1_pre_warmup_ver3.pth")
 ###datapipeline
 dataset=ts_textual(128,128,tokenizer,_json_file,device=device)
 dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
@@ -39,7 +40,7 @@ dataset= ts_multimodal_text(128,128,_json_file,tokenizer,device=device,model_dty
 dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer,device=device))"""
 
 class LLM_wrapper(nn.Module):
-    def __init__(self,tokenizer,conv_layers,patch_len,llm_model,device=device):
+    def __init__(self,tokenizer,conv_layers,patch_len,llm_model,ts_checkpoint=None,device=device):
         super().__init__()
         self.tokenizer=tokenizer
         self.llm_model=llm_model
@@ -57,13 +58,15 @@ class LLM_wrapper(nn.Module):
         self.ts_transformer=PatchTSTEncoder(patch_len=self.P,n_layers=2,d_model=512,n_heads=4,
                                 shared_embedding=True,d_ff=1024,norm='Layer',attn_dropout=0.,dropout=0.1,activation='gelu',store_attn=False,res_attention=False,pre_norm=True,pe='zeros',learn_pe=True,verbose=False)
         self.ts_encoder = llm_projection(self.ts_conv_module,64,self.ts_transformer,512,1024,3072)
+        
+        ts_enc_state_dict = torch.load(ts_checkpoint, map_location=self.device)
+        self.ts_encoder.load_state_dict(ts_enc_state_dict,strict=False)
+        self.ts_encoder.to(self.device)
+
         for p in self.ts_encoder.parameters():
             p.requires_grad = True
-        
-        self.ts_encoder.to(self.device)
-        
         for p in self.llm_model.parameters():
-            p.requires_grad = False   
+            p.requires_grad = False    
             
     def assemble_input_embeds(self,input_ids,ts_embeddings,ts_token_idx,text_token_idx,ts_pairs:torch.tensor):
         ###logic to assemble textual and ts_tokens 
@@ -121,7 +124,7 @@ class LLM_wrapper(nn.Module):
     
 from tqdm import tqdm
 conv_layers=[(128,5,1),(64,3,1)]
-model_wrapper=LLM_wrapper(tokenizer,conv_layers,128,model,device=device)
+model_wrapper=LLM_wrapper(tokenizer,conv_layers,128,model,ts_checkpoint=ts_warmup_weights,device=device)
 model_wrapper.train()
 model_wrapper.to(device)
 
@@ -198,7 +201,7 @@ torch.save(embeds, os.path.join(os.environ["SLURM_TMPDIR"], "aligned_embeddings.
 ##tokenizer saved
 tokenizer.save_pretrained(os.path.join(os.environ["SLURM_TMPDIR"],'llm_tokenizer'))
 ### save the plot
-out_path = os.path.join(os.environ["SLURM_TMPDIR"], "training_loss_MTS.png")
+out_path = os.path.join(os.environ["SLURM_TMPDIR"], "training_loss_MTS_1.png")
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
