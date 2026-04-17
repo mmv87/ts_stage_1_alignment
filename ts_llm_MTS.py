@@ -33,11 +33,8 @@ _json_file = os.path.join(os.environ["SLURM_TMPDIR"],"train.jsonl")
 #ts_state_dict="/home/mmk/projects/def-zonata/mmk/version_3/stage_1_prewarmup"
 ts_warmup_weights=os.path.join(os.environ["SLURM_TMPDIR"],"ts_enc_stage1_pre_warmup_ver3.pth")
 ###datapipeline
-dataset=ts_textual(128,128,tokenizer,_json_file,device=device)
+dataset=ts_textual(128,128,tokenizer,_json_file,5000,device=device)
 dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
-"""
-dataset= ts_multimodal_text(128,128,_json_file,tokenizer,device=device,model_dtype=None)
-dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer,device=device))"""
 
 class LLM_wrapper(nn.Module):
     def __init__(self,tokenizer,conv_layers,patch_len,llm_model,ts_checkpoint=None,device=device):
@@ -160,7 +157,7 @@ all_params = (list(model_wrapper.ts_encoder.parameters())+list(model_wrapper.llm
 optimizer = torch.optim.AdamW(all_params, lr=1e-5)
 epoch_losses=[]
 
-for epoch in range(2):  ##1 epochs
+for epoch in range(1):  ##1 epochs
     pbar = tqdm(dataloader, desc=f"Epoch {epoch}")
     num_batches = 0
     running_loss=0
@@ -207,7 +204,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 plt.figure(figsize=(8, 10))
-plt.plot(epoch_losses, marker='o')
+plt.plot(epoch_losses, marker='*')
 plt.title("Training Loss Trend Over Epochs")
 plt.xlabel("Epoch")
 plt.ylabel("Average Loss")

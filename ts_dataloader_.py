@@ -30,8 +30,6 @@ special_token_dict={'pad_token':"<|pad|>","additional_special_tokens":['<ts>','<
 tokenizer.add_special_tokens(special_token_dict)
 align_256_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/training_dataset/ChatTS-Training-Dataset/align_256/train.jsonl'"""
 ##sft_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/training_dataset/ChatTS-Training-Dataset/sft/sft_train.jsonl'
-
-##print(align_256_file)
 ## Dataset class to get the pipeline for a sample
 ## requirements for Dataset 
     ##1. To patchify the timeseries data (from 1D 1, T)---> (N*C,T)
@@ -40,13 +38,14 @@ align_256_file='D:/Doctoral_research/code_implementation/Time_series_reasoning/t
     ### if the max_N and max_ch is fixed the indices of te assembled ts_tokens are fixed
 
 class ts_textual(Dataset): 
-    def __init__(self,patch_len,stride,tokenizer,file,device=device):
+    def __init__(self,patch_len,stride,tokenizer,file,sample_size,device=device):
         super().__init__()
         self.patch_len=patch_len
         self.stride=stride
         self.tokenizer=tokenizer
         self.file=file
         self.device =device
+        self.num_of_samples=sample_size
         self.byte_offset=[]
         
         with open(self.file,'rb') as f:
@@ -61,7 +60,7 @@ class ts_textual(Dataset):
                     except:
                         print('error in the line')
         
-        self.sliced_offset=self.byte_offset[:5000]
+        self.sliced_offset=self.byte_offset[:self.num_of_samples]
 
     def __len__(self):
         return len(self.sliced_offset)
@@ -296,8 +295,9 @@ class ts_textual(Dataset):
         input = sample['input']
         output = sample['output']
         timeseries=sample['timeseries'] ###list of lists
-        
-        input_ids=self.tokenizer(input,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
+        prompt=f"<|system|>You are helpful AI assistant,analyse the following timeseries data and answer the question based on it<|end|><|user|>{input}<|end|><|assistant|>"
+
+        input_ids=self.tokenizer(prompt,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
         output_ids=self.tokenizer(output,return_tensors='pt',add_special_tokens=False)['input_ids'][0]
         ###total_textual_ids
         combined_ids=torch.cat([input_ids,output_ids],dim=0)
