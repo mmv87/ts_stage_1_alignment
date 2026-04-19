@@ -32,12 +32,13 @@ import json
 _json_file = os.path.join(os.environ["SLURM_TMPDIR"],"train.jsonl")
 #ts_state_dict="/home/mmk/projects/def-zonata/mmk/version_3/stage_1_prewarmup"
 ts_warmup_weights=os.path.join(os.environ["SLURM_TMPDIR"],"ts_enc_stage1_pre_warmup_ver3.pth")
+embedding_weights=os.path.join(os.environ["SLURM_TMPDIR"],"embeddings_layer.pt")
 ###datapipeline
 dataset=ts_textual(128,128,tokenizer,_json_file,5000,device=device)
 dataloader=DataLoader(dataset,batch_size=1,shuffle=True,collate_fn=lambda b:collate_func(b,tokenizer=tokenizer))
 
 class LLM_wrapper(nn.Module):
-    def __init__(self,tokenizer,conv_layers,patch_len,llm_model,ts_checkpoint=None,device=device):
+    def __init__(self,tokenizer,conv_layers,patch_len,llm_model,embed_path=None,ts_checkpoint=None,device=device):
         super().__init__()
         self.tokenizer=tokenizer
         self.llm_model=llm_model
@@ -47,6 +48,10 @@ class LLM_wrapper(nn.Module):
         self.P=patch_len
         self.device=device
         self.conv_layers=conv_layers
+        ##self.embed_path=embed_path
+
+        if embed_path:
+            self.llm_model.get_input_embeddings().load_state_dict(torch.load(embed_path))
 
         self.input_embeds=self.llm_model.get_input_embeddings()
         self.input_embeds.requires_grad_(True)
@@ -121,7 +126,7 @@ class LLM_wrapper(nn.Module):
     
 from tqdm import tqdm
 conv_layers=[(128,5,1),(64,3,1)]
-model_wrapper=LLM_wrapper(tokenizer,conv_layers,128,model,ts_checkpoint=ts_warmup_weights,device=device)
+model_wrapper=LLM_wrapper(tokenizer,conv_layers,128,model,embed_path=embedding_weights,ts_checkpoint=ts_warmup_weights,device=device)
 model_wrapper.train()
 model_wrapper.to(device)
 
