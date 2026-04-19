@@ -31,7 +31,7 @@ model.resize_token_embeddings(len(tokenizer))
 import json
 _json_file = os.path.join(os.environ["SLURM_TMPDIR"],"train.jsonl")
 #ts_state_dict="/home/mmk/projects/def-zonata/mmk/version_3/stage_1_prewarmup"
-ts_warmup_weights=os.path.join(os.environ["SLURM_TMPDIR"],"ts_enc_stage1_pre_warmup_ver3.pth")
+ts_warmup_weights=os.path.join(os.environ["SLURM_TMPDIR"],"ts_enc_stage1_warmup.pth")
 embedding_weights=os.path.join(os.environ["SLURM_TMPDIR"],"embeddings_layer.pt")
 ###datapipeline
 dataset=ts_textual(128,128,tokenizer,_json_file,5000,device=device)
